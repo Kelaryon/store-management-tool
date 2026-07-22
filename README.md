@@ -1,160 +1,297 @@
 # Store Management Tool
 
-A lightweight, extensible tool to manage store inventory, sales, and operations. This README provides an overview, setup instructions, usage examples, and contribution guidelines. Update any placeholders to match your project's specifics (language, commands, configuration).
+A lightweight Spring Boot application for managing store inventory and operations.
+The application provides product management, user authentication, role-based authorization, and REST API endpoints for managing store data.
 
 ## Features
 
-- Inventory management (add, update, remove products)
-- Sales tracking and reporting
-- User / role management (admins, staff)
-- Basic analytics and export (CSV/JSON)
-- Configurable storage (SQLite/Postgres/Mongo/Disk)
-- API and/or web UI (depending on implementation)
+- Product inventory management
+
+    - Create products
+    - Update product information
+    - Delete products
+    - Search and filter products
+    - Manage product details
+- User authentication using JWT
+- Role-based authorization
+    - Admin access control
+- Request validation using Jakarta Validation
+- REST API
+- MariaDB database integration
+- Automated integration testing
 
 ## Tech stack
 
-> Fill this section with the actual technologies used by the project (e.g. Node.js + Express, Python + Django/Flask, Go, Ruby on Rails, etc.).
-
-Example (replace with real stack):
-- Language: JavaScript (Node.js)
-- Framework: Express
-- Database: SQLite (development), PostgreSQL (production)
-- Frontend: React (optional)
+- Language: Java 21
+- Framework: Spring Boot
+- Security: Spring Security + JWT
+- ORM: Hibernate / Spring Data JPA
+- Database: MariaDB
+- Build Tool: Maven
+- Testing:
+    - JUnit 5
+    - Spring Boot Test
+    - MockMvc
 
 ## Quickstart
 
-These instructions are intentionally generic — replace the commands with the ones that apply to your repository.
+### Prerequisites
 
-1. Clone the repo
+Make sure you have installed:
 
-   git clone https://github.com/Kelaryon/store-management-tool.git
-   cd store-management-tool
+- Java 21+
+- Maven
+- MariaDB
 
-2. Install dependencies
+### Clone the repository
 
-- Node (example)
+```bash
+git clone https://github.com/Kelaryon/store-management-tool.git
 
-   npm install
+cd store-management-tool
+```
 
-- Python (example)
+### Configure the database
 
-   python -m venv venv
-   source venv/bin/activate
-   pip install -r requirements.txt
+Create the databases:
 
-3. Configure
+```sql
+CREATE DATABASE store_management_tool_db;
+CREATE DATABASE store_management_tool_db_test;
+```
 
-Create a .env file (or update config) with required environment variables. Example variables:
+Update the database configuration in:
 
-- DATABASE_URL
-- SECRET_KEY
-- PORT (optional)
-
-4. Initialize the database
-
-- Node/ORM example:
-
-   npm run migrate
-
-- Django example:
-
-   python manage.py migrate
-
-- Or use any provided migration scripts in the repository.
-
-5. Run the app
-
-- Development (Node example):
-
-   npm run dev
-
-- Production (example):
-
-   npm start
-
-6. Open the app
-
-Visit http://localhost:3000 (or the configured PORT) in your browser.
-
-## Usage
-
-Document the main user flows for your project here. Example commands and endpoints:
-
-- Adding a product (API): POST /api/products
-- Updating a product (API): PUT /api/products/:id
-- Fetching inventory: GET /api/products
-- Sales report: GET /api/reports/sales?from=YYYY-MM-DD&to=YYYY-MM-DD
-
-Add any example requests and responses, or screenshots of the UI if one exists.
-
-## Configuration
-
-Describe configuration options, environment variables, and defaults. Example:
-
-- DATABASE_URL=postgres://user:pass@localhost:5432/storedb
-- SECRET_KEY=some-secret-value
-- NODE_ENV=development
-
-## Testing
-
-Describe how to run tests in this project. Example:
-
-- Run unit tests:
-
-   npm test
-
-- Run linting and formatting checks:
-
-   npm run lint
-   npm run format
-
-## Docker
-
-If you provide Docker support, include example commands and how to run with Docker Compose.
-
-Example Docker usage:
-
-   docker build -t store-management-tool .
-   docker run -e DATABASE_URL=... -p 3000:3000 store-management-tool
-
-Or using docker-compose:
-
-   docker-compose up --build
-
-## Contributing
-
-Contributions are welcome! Please follow these steps:
-
-1. Fork the repository
-2. Create a feature branch: git checkout -b feature/awesome-feature
-3. Make your changes and add tests
-4. Run tests locally
-5. Open a pull request describing your changes
-
-Add any repository-specific guidelines: code style, branch naming, commit message format, or PR checklist.
-
-## Roadmap
-
-- Add advanced reporting and dashboards
-- Integrate with payment providers
-- Improve role-based access control
-- Add more import/export formats
-
-## Troubleshooting
-
-List common issues and solutions relevant to your project.
-
-## License
-
-Specify the license used by the project (e.g., MIT, Apache-2.0). If unknown, add a placeholder.
+```
+src/main/resources/application.properties
+```
 
 Example:
 
-MIT © Kelaryon
+```properties
+spring.datasource.url=jdbc:mariadb://localhost:3306/store_management_tool_db
+spring.datasource.username=root
+spring.datasource.password=your_password
+```
+
+### Configure JWT
+
+Add your JWT secret:
+
+```properties
+jwt.secret=your_secret_key
+```
+
+For production environments, use environment variables instead of storing secrets directly in configuration files.
+
+### Run the application
+
+Using Maven:
+
+```bash
+./mvnw spring-boot:run
+```
+
+or:
+
+```bash
+mvn spring-boot:run
+```
+
+The application will start on:
+
+```
+http://localhost:8080
+```
+
+## Usage
+
+The application exposes REST API endpoints.
+
+### Authentication
+
+Register a new account:
+
+```
+POST /auth/signup
+```
+
+Login:
+
+```
+POST /auth/login
+```
+
+The login endpoint returns a JWT token that must be included in authenticated requests:
+
+```
+Authorization: Bearer <token>
+```
+
+### Products
+
+Create a product:
+
+```
+POST /admin/products
+```
+
+Update a product:
+
+```
+PUT /admin/products/{id}
+```
+
+Delete a product:
+
+```
+DELETE /admin/products/{id}
+```
+
+Get products:
+
+```
+GET /admin/products
+```
+
+Search products:
+
+```
+GET /admin/products/search
+```
+
+## Configuration
+
+Main application configuration:
+
+```
+src/main/resources/application.properties
+```
+
+Test configuration:
+
+```
+src/test/resources/application-test.properties
+```
+
+Important properties:
+
+```properties
+spring.datasource.url=jdbc:mariadb://localhost:3306/store_management_tool_db
+spring.datasource.username=root
+spring.datasource.password=your_password
+
+spring.jpa.hibernate.ddl-auto=update
+
+jwt.secret=your_secret_key
+```
+
+## Testing
+
+The project uses JUnit 5 and Spring Boot Test with MockMvc for integration testing.
+
+Tests cover:
+
+- Product CRUD operations
+- Product searching
+- Authentication and authorization
+- JWT authentication flow
+- Request validation
+- Controller endpoint behavior
+
+Before running tests:
+
+- Make sure MariaDB is running.
+- Create the test database:
+
+```sql
+CREATE DATABASE store_management_tool_db_test;
+```
+
+The test environment uses the Spring `test` profile and loads configuration from:
+
+```
+src/test/resources/application-test.properties
+```
+
+The database schema is automatically created/updated during tests.
+
+Run all tests:
+
+```bash
+./mvnw test
+```
+
+Run a specific test class:
+
+```bash
+./mvnw test -Dtest=AdminControllerTest
+```
+
+## Contributing
+
+Contributions are welcome.
+
+Steps:
+
+1. Fork the repository
+2. Create a feature branch:
+
+```bash
+git checkout -b feature/new-feature
+```
+
+3. Implement your changes
+4. Add or update tests
+5. Run the test suite:
+
+```bash
+./mvnw test
+```
+
+6. Create a pull request describing your changes
+
+## Troubleshooting
+
+### Application cannot connect to MariaDB
+
+Check:
+
+- MariaDB is running
+- Database exists
+- Credentials in `application.properties` are correct
+
+### Tests fail with database errors
+
+Check:
+
+- `store_management_tool_db_test` exists
+- Test database credentials are correct
+- MariaDB service is running
+
+### Authentication returns 403 Forbidden
+
+Check:
+
+- JWT token is included:
+
+```
+Authorization: Bearer <token>
+```
+
+- The authenticated user has the required role/authority.
+
+## License
+
+This project currently does not have a license.
 
 ## Contact
 
 Maintainer: Kelaryon
-Repository: https://github.com/Kelaryon/store-management-tool
 
-If you'd like, tell me the tech stack (language/framework) used in this repo and I will update the README with tailored installation and run instructions, examples, and badges.
+Repository:
+https://github.com/Kelaryon/store-management-tool
+
+## Project Status
+
+This project is actively developed and serves as a backend inventory management application.
