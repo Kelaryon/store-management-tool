@@ -1,6 +1,11 @@
 package com.kelaryon.store_management_tool.admin;
 
+import com.kelaryon.store_management_tool.data.Account;
+import com.kelaryon.store_management_tool.data.AccountRole;
+import com.kelaryon.store_management_tool.data.LoginResponseDTO;
 import com.kelaryon.store_management_tool.data.Product;
+import com.kelaryon.store_management_tool.repository.AccountRepository;
+import com.kelaryon.store_management_tool.repository.AccountRoleRepository;
 import com.kelaryon.store_management_tool.repository.ProductRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -9,11 +14,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
+import tools.jackson.databind.ObjectMapper;
 
 import java.math.BigDecimal;
+import java.util.Set;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -28,11 +37,31 @@ class AdminControllerTest {
     private MockMvc mockMvc;
     @Autowired
     private ProductRepository productRepository;
-    private final String token = "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqb2huQGV4YW1wbGUuY29tIiwiaWF0IjoxNzg0NzI2MzEyLCJleHAiOjE3ODUzMzExMTJ9.NXh8-5FBhVjjXe5GWv5d1wK_CAEFNg_MdSjODamZbAU";
+    @Autowired
+    private AccountRepository accountRepository;
+    @Autowired
+    private AccountRoleRepository accountRoleRepository;
+    private String token = "Bearer " + "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqb2huQGV4YW1wbGUuY29tIiwiaWF0IjoxNzg0NzQzNzE3LCJleHAiOjE3ODUzNDg1MTd9.nF2H4yM8ab55lSx2sNl_ZaEKb9A5UHU7-W1_tv5Fhrk";
+    private final BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
 
     @BeforeEach
-    void cleanDb() {
+    void createAccountToken() throws Exception {
         productRepository.deleteAll();
+        accountRepository.deleteAll();
+        AccountRole adminRole = accountRoleRepository.findByName("ADMIN");
+        if (adminRole == null) {
+            adminRole = accountRoleRepository.save(
+                    new AccountRole(null, "ADMIN")
+            );
+        }
+
+        Account admin = Account.builder()
+                .email("john@example.com")
+                .passwordHash(bCryptPasswordEncoder.encode("password123"))
+                .roles(Set.of(adminRole))
+                .build();
+        accountRepository.save(admin);
+        token = login();
     }
 
     @Test
@@ -150,5 +179,26 @@ class AdminControllerTest {
         product.setCategory(category);
 
         return productRepository.save(product);
+    }
+
+    private String login() throws Exception {
+
+        MvcResult result = mockMvc.perform(post("/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "email":"john@example.com",
+                                    "password":"password123"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        LoginResponseDTO response = new ObjectMapper()
+                .readValue(result.getResponse().getContentAsString(),
+                        LoginResponseDTO.class);
+
+        System.out.println(result.getResponse().getContentAsString());
+        return "Bearer " + response.token();
     }
 }
