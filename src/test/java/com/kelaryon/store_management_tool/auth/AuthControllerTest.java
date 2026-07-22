@@ -2,7 +2,9 @@ package com.kelaryon.store_management_tool.auth;
 
 import com.kelaryon.store_management_tool.data.LoginResponseDTO;
 import com.kelaryon.store_management_tool.repository.AccountRepository;
+import com.kelaryon.store_management_tool.security.AuthUtils;
 import org.junit.jupiter.api.*;
+import org.junit.platform.commons.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -16,7 +18,6 @@ import tools.jackson.databind.ObjectMapper;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
@@ -26,8 +27,10 @@ class AuthControllerTest {
     private MockMvc mockMvc;
     @Autowired
     private AccountRepository accountRepository;
+    @Autowired
+    private AuthUtils authUtils;
 
-    @AfterAll
+    @BeforeEach
     void cleanDb() {
         accountRepository.deleteAll();
     }
@@ -47,6 +50,32 @@ class AuthControllerTest {
                 .andExpect(status().isOk());
 
         Assertions.assertTrue(accountRepository.existsByEmail("john@example.com"));
+    }
+
+    @Test
+    void signupDuplicateTest() throws Exception {
+
+        mockMvc.perform(post("/auth/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                    {
+                                        "email":"john@example.com",
+                                        "password":"password123"
+                                    }
+                                """))
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(status().isOk());
+        Assertions.assertTrue(accountRepository.existsByEmail("john@example.com"));
+        mockMvc.perform(post("/auth/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                    {
+                                        "email":"john@example.com",
+                                        "password":"password123"
+                                    }
+                                """))
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(status().isConflict());
     }
 
     @Test
@@ -81,8 +110,8 @@ class AuthControllerTest {
                         LoginResponseDTO.class
                 );
         String token = response.token();
-        System.out.println("JWT: " + token);
-        Assertions.assertNotNull(token);
-        Assertions.assertFalse(token.isBlank());
+        Assertions.assertTrue(StringUtils.isNotBlank(token));
+        String emailFromJWT = authUtils.getEmailFromJWT(token);
+        Assertions.assertEquals("john@example.com", emailFromJWT);
     }
 }

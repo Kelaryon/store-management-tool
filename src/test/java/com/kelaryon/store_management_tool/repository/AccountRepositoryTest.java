@@ -1,7 +1,7 @@
 package com.kelaryon.store_management_tool.repository;
 
 import com.kelaryon.store_management_tool.data.Account;
-import com.kelaryon.store_management_tool.security.AuthUtils;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -17,14 +17,17 @@ class AccountRepositoryTest {
 
     @Autowired
     AccountRepository accountRepository;
-    @Autowired
-    AuthUtils authUtils;
+
+    @BeforeEach
+    void cleanDb() {
+        accountRepository.deleteAll();
+    }
 
     @Test
-    void saveAccountTest(){
+    void saveAccountTest() {
         Account account = Account.builder()
                 .email("test_mail@mail.com")
-                .passwordHash(authUtils.generateHashedPassword("test_password"))
+                .passwordHash("test_password")
                 .creationDate(new Date())
                 .activated(false)
                 .build();
