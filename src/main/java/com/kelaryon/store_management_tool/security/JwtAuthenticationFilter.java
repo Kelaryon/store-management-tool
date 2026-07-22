@@ -7,7 +7,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -20,14 +19,14 @@ import java.io.IOException;
 @Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    @Autowired
-    private AuthUtils authUtils;
+    private final AuthUtils authUtils;
 
     public static final String BEARER_ = "Bearer ";
     private final CustomUserDetailService customUserDetailService;
 
-    public JwtAuthenticationFilter(CustomUserDetailService customUserDetailService) {
+    public JwtAuthenticationFilter(CustomUserDetailService customUserDetailService, AuthUtils authUtils) {
         this.customUserDetailService = customUserDetailService;
+        this.authUtils = authUtils;
     }
 
     @Override
@@ -43,7 +42,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String token = header.substring(BEARER_.length());
             String email = authUtils.getEmailFromJWT(token);
 
-            if(email == null){
+            if (email == null) {
                 filterChain.doFilter(request, response);
                 return;
             }
