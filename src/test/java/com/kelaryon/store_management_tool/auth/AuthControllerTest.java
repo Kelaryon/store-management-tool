@@ -2,9 +2,7 @@ package com.kelaryon.store_management_tool.auth;
 
 import com.kelaryon.store_management_tool.data.LoginResponseDTO;
 import com.kelaryon.store_management_tool.repository.AccountRepository;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -18,6 +16,7 @@ import tools.jackson.databind.ObjectMapper;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
@@ -28,7 +27,7 @@ class AuthControllerTest {
     @Autowired
     private AccountRepository accountRepository;
 
-    @BeforeEach
+    @AfterAll
     void cleanDb() {
         accountRepository.deleteAll();
     }
