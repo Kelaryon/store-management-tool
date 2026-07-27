@@ -118,6 +118,11 @@ class AdminControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id")
                         .value(product.getId()));
+
+        mockMvc.perform(get("/admin/products/" + 99L)
+                        .header("Authorization", token))
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(status().isNotFound());
     }
 
     @Test
@@ -138,8 +143,36 @@ class AdminControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name")
                         .value("Updated Product"));
-    }
 
+        mockMvc.perform(patch("/admin/products/" + product.getId())
+                        .header("Authorization", token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                    {
+                                        "name":"Updated Product",
+                                        "price":-20.0
+                                    }
+                                """))
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.price")
+                        .value("must be greater than 0"));
+
+        createProduct("Prod_test_for_duplication_name",10.50,"test");
+
+        mockMvc.perform(patch("/admin/products/" + product.getId())
+                        .header("Authorization", token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                    {
+                                        "name":"Prod_test_for_duplication_name"
+                                    }
+                                """))
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error")
+                        .value("Product with Name 'Updated Product' already exists."));
+    }
 
     @Test
     void deleteProduct() throws Exception {
@@ -153,7 +186,6 @@ class AdminControllerTest {
         Assertions.assertFalse(productRepository.existsById(product.getId()));
     }
 
-
     @Test
     void searchProducts() throws Exception {
 
@@ -166,7 +198,6 @@ class AdminControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isArray());
     }
-
 
     private Product createProduct() {
         return createProduct("Prod_test", 10.50, "test");

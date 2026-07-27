@@ -1,6 +1,7 @@
 package com.kelaryon.store_management_tool.data;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 import java.util.Date;
@@ -19,8 +20,10 @@ public class Account {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @NotNull
     @Column(unique = true)
     private String email;
+    @NotNull
     private String passwordHash;
     private Date creationDate;
     private boolean activated;

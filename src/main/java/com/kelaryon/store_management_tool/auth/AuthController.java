@@ -3,6 +3,7 @@ package com.kelaryon.store_management_tool.auth;
 import com.kelaryon.store_management_tool.data.*;
 import com.kelaryon.store_management_tool.repository.AccountRepository;
 import com.kelaryon.store_management_tool.security.AuthUtils;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -34,7 +35,7 @@ public class AuthController {
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<SignupResponseDTO> signup(@RequestBody SignupRequestDTO signupRequestDTO) {
+    public ResponseEntity<SignupResponseDTO> signup(@Valid @RequestBody SignupRequestDTO signupRequestDTO) {
         if (accountRepository.existsByEmail(signupRequestDTO.email())) {
             return ResponseEntity
                     .status(HttpStatus.CONFLICT)
@@ -53,7 +54,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public LoginResponseDTO login(@RequestBody LoginRequestDTO loginRequestDTO) {
+    public LoginResponseDTO login(@Valid @RequestBody LoginRequestDTO loginRequestDTO) {
         Authentication authentication = authManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         loginRequestDTO.email(),

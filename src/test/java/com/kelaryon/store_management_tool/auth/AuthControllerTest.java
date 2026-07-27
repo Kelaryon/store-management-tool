@@ -38,18 +38,65 @@ class AuthControllerTest {
     @Test
     void signupTest() throws Exception {
 
+        //Valid account creation test
         mockMvc.perform(post("/auth/signup")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                     {
                                         "email":"john@example.com",
-                                        "password":"password123"
+                                        "password":"PasWord2@--D"
                                     }
                                 """))
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(status().isOk());
 
         Assertions.assertTrue(accountRepository.existsByEmail("john@example.com"));
+
+        //Invalid Email format Test
+        mockMvc.perform(post("/auth/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                    {
+                                        "email":"vailedEmail",
+                                        "password":"PasWord2@--D"
+                                    }
+                                """))
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(status().isBadRequest());
+
+        //Invalid no email field Test
+        mockMvc.perform(post("/auth/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                    {
+                                        "password":"PasWord2@--D"
+                                    }
+                                """))
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(status().isBadRequest());
+
+        //Invalid account creation password test
+        mockMvc.perform(post("/auth/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                    {
+                                        "email":"john@example.com"
+                                    }
+                                """))
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(status().isBadRequest());
+
+        //Invalid account creation password test
+        mockMvc.perform(post("/auth/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                    {
+                                        "email":"john@example.com",
+                                        "password":"Pas123"
+                                    }
+                                """))
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(status().isBadRequest());
     }
 
     @Test

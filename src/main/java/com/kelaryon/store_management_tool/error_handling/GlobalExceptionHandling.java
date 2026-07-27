@@ -1,6 +1,7 @@
 package com.kelaryon.store_management_tool.error_handling;
 
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -29,5 +30,13 @@ public class GlobalExceptionHandling {
                 );
 
         return ResponseEntity.badRequest().body(errors);
+    }
+
+    @ExceptionHandler(DuplicateEntityException.class)
+    public ResponseEntity<Map<String, String>> handleDuplicateProduct(
+            DuplicateEntityException ex) {
+
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(Map.of("error", ex.getMessage()));
     }
 }

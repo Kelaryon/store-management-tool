@@ -1,6 +1,7 @@
 package com.kelaryon.store_management_tool.services;
 
 import com.kelaryon.store_management_tool.data.*;
+import com.kelaryon.store_management_tool.error_handling.DuplicateEntityException;
 import com.kelaryon.store_management_tool.mappers.ProductDTOMapper;
 import com.kelaryon.store_management_tool.repository.ProductRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +16,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 @Slf4j
 @Service
@@ -45,6 +47,10 @@ public class ProductService {
                 .isSellable(false)
                 .build();
 
+        if (productRepository.existsByName(product.getName())) {
+            throw new DuplicateEntityException(product.getClass(), "name", product.getName());
+        }
+
         List<ProductDetail> detailList = request.details()
                 .stream()
                 .map(e -> ProductDetail
@@ -66,6 +72,9 @@ public class ProductService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         List<String> changed = new ArrayList<>();
         if (updateProductRequestDTO.name() != null && !updateProductRequestDTO.name().equals(product.getName())) {
+            if (productRepository.existsByNameAndIdNotIn(updateProductRequestDTO.name(), Set.of(product.getId()))) {
+                throw new DuplicateEntityException(Product.class, "Name", product.getName());
+            }
             product.setName(updateProductRequestDTO.name());
             changed.add("name");
         }
