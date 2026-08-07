@@ -40,14 +40,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
         try {
             String token = header.substring(BEARER_.length());
-            String email = authUtils.getEmailFromJWT(token);
+            Long accountID = authUtils.getAccountIdFromAccessToken(token);
 
-            if (email == null) {
+            if (accountID == null) {
                 filterChain.doFilter(request, response);
                 return;
             }
 
-            UserDetails userDetails = customUserDetailService.loadUserByUsername(email);
+            UserDetails userDetails = customUserDetailService.loadUserById(accountID);
 
             UsernamePasswordAuthenticationToken auth =
                     new UsernamePasswordAuthenticationToken(

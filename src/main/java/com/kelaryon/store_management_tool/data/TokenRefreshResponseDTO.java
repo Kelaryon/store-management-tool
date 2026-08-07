@@ -1,6 +1,6 @@
 package com.kelaryon.store_management_tool.data;
 
-public record LoginResponseDTO(
+public record TokenRefreshResponseDTO(
         String accessToken,
         String refreshToken
 ) {

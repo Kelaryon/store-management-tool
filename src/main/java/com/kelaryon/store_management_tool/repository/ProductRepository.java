@@ -4,6 +4,7 @@ import com.kelaryon.store_management_tool.data.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -17,9 +18,9 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
                 LEFT JOIN FETCH product.productDetails
                 WHERE product.id = :id
             """)
-    Optional<Product> findProductWithDetails(Long id);
+    Optional<Product> findProductWithDetails(@Param("id") Long id);
 
-    boolean existsByName(String name);
+    boolean existsByName(@Param("name") String name);
 
     @Query("""
             SELECT COUNT(product) > 0
@@ -27,5 +28,5 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
             WHERE product.name = :name
               AND product.id NOT IN :ids
             """)
-    boolean existsByNameAndIdNotIn(String name, Set<Long> ids);
+    boolean existsByNameAndIdNotIn(@Param("name") String name,@Param("ids") Set<Long> ids);
 }

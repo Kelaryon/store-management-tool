@@ -17,6 +17,7 @@ import java.util.List;
 @Getter
 public class AccountDetailsDTO implements UserDetails {
 
+    private Long id;
     private String email;
     private String password;
     private boolean activated;

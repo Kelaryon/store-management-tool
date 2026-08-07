@@ -34,7 +34,27 @@ public class CustomUserDetailService implements UserDetailsService {
                 .toList();
 
         return new AccountDetailsDTO(
-                email,
+                account.getId(),
+                account.getEmail(),
+                account.getPasswordHash(),
+                account.isActivated(),
+                roles
+        );
+    }
+
+    @NonNull
+    public AccountDetailsDTO loadUserById(@NonNull Long accountId) throws UsernameNotFoundException {
+        Account account = accountRepository.findAccountByIdWithRoles(accountId)
+                .orElseThrow(() -> new UsernameNotFoundException("No account found with id: " + accountId));
+
+        List<GrantedAuthority> roles = account.getRoles()
+                .stream()
+                .map(e -> (GrantedAuthority) new SimpleGrantedAuthority(e.getName()))
+                .toList();
+
+        return new AccountDetailsDTO(
+                account.getId(),
+                account.getEmail(),
                 account.getPasswordHash(),
                 account.isActivated(),
                 roles
