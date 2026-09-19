@@ -1,70 +1,38 @@
 package com.kelaryon.store_management_tool.auth;
 
 import com.kelaryon.store_management_tool.data.*;
-import com.kelaryon.store_management_tool.repository.AccountRepository;
-import com.kelaryon.store_management_tool.security.AuthUtils;
+import com.kelaryon.store_management_tool.services.AuthService;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.Date;
 
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
 
 
-    private final AuthenticationManager authManager;
-    private final AuthUtils authUtils;
-    private final AccountRepository accountRepository;
+    private final AuthService authService;
 
-    public AuthController(
-            AuthenticationManager authManager,
-            AuthUtils authUtils,
-            AccountRepository accountRepository) {
-        this.authManager = authManager;
-        this.authUtils = authUtils;
-        this.accountRepository = accountRepository;
+    public AuthController(AuthService authService) {
+        this.authService = authService;
     }
 
     @PostMapping("/signup")
     public ResponseEntity<SignupResponseDTO> signup(@Valid @RequestBody SignupRequestDTO signupRequestDTO) {
-        if (accountRepository.existsByEmail(signupRequestDTO.email())) {
-            return ResponseEntity
-                    .status(HttpStatus.CONFLICT)
-                    .body(new SignupResponseDTO("Email already used"));
-        }
-        Account account = Account
-                .builder()
-                .email(signupRequestDTO.email())
-                .passwordHash(authUtils.generateHashedPassword(signupRequestDTO.password()))
-                .creationDate(new Date())
-                .activated(false)
-                .build();
-        accountRepository.save(account);
-        return ResponseEntity.ok(
-                new SignupResponseDTO("Account created successfully"));
+        return authService.signup(signupRequestDTO);
     }
 
     @PostMapping("/login")
-    public LoginResponseDTO login(@Valid @RequestBody LoginRequestDTO loginRequestDTO) {
-        Authentication authentication = authManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        loginRequestDTO.email(),
-                        loginRequestDTO.password())
-        );
-        if (!(authentication.getPrincipal() instanceof AccountDetailsDTO accountDetailsDTO)) {
-            throw new IllegalStateException("Authentication principal is not an AccountDetailsDTO");
-        }
-        String accountJWT = authUtils.generateAccountJWT(accountDetailsDTO);
-        return new LoginResponseDTO(accountJWT);
+    public ResponseEntity<LoginResponseDTO> login(@Valid @RequestBody LoginRequestDTO loginRequestDTO) {
+        return authService.login(loginRequestDTO);
+    }
+
+    @PostMapping("/refreshToken")
+    public ResponseEntity<TokenRefreshResponseDTO> refreshAccessToken(@Valid @RequestBody TokenRefreshRequestDTO tokenRefreshRequestDTO) {
+        return authService.refreshAccessToken(tokenRefreshRequestDTO);
     }
 
 }

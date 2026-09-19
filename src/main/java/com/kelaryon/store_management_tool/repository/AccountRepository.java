@@ -11,6 +11,7 @@ import java.util.Optional;
 @Repository
 public interface AccountRepository extends JpaRepository<Account,Long> {
 
+    Optional<Account> findAccountsByEmail(@Param("email") String email);
     @Query("""
         SELECT DISTINCT acc
         FROM Account acc
@@ -18,7 +19,14 @@ public interface AccountRepository extends JpaRepository<Account,Long> {
         WHERE acc.email = :email
     """)
     Optional<Account> findAccountByEmailWithRoles(@Param("email") String email);
-    boolean existsByEmail(String email);
+    @Query("""
+        SELECT DISTINCT acc
+        FROM Account acc
+        LEFT JOIN FETCH acc.roles
+        WHERE acc.id = :id
+    """)
+    Optional<Account> findAccountByIdWithRoles(@Param("id") Long id);
+    boolean existsByEmail(@Param("email") String email);
 
 
 }

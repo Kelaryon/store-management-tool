@@ -230,6 +230,6 @@ class AdminControllerTest {
                         LoginResponseDTO.class);
 
         System.out.println(result.getResponse().getContentAsString());
-        return "Bearer " + response.token();
+        return "Bearer " + response.accessToken();
     }
 }
